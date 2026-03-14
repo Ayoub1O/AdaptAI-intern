@@ -1,21 +1,23 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastre Aisne (02) - Parcellaire Express</title>
-    
+
     <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
-    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+
     <style>
-        body, html {
+        body,
+        html {
             margin: 0;
             padding: 0;
             height: 100%;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         #header {
             height: 60px;
             background-color: #2c3e50;
@@ -23,24 +25,24 @@
             display: flex;
             align-items: center;
             padding: 0 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
             z-index: 1000;
             position: relative;
         }
-        
+
         #header h1 {
             margin: 0;
             font-size: 1.5rem;
             flex-grow: 1;
         }
-        
+
         #stats {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
             padding: 5px 15px;
             border-radius: 20px;
             font-size: 0.9rem;
         }
-        
+
         #map {
             height: calc(100% - 60px);
             width: 100%;
@@ -50,12 +52,14 @@
         /* Popup styling */
         .leaflet-popup-content-wrapper {
             border-radius: 8px;
-            box-shadow: 0 3px 14px rgba(0,0,0,0.2);
+            box-shadow: 0 3px 14px rgba(0, 0, 0, 0.2);
         }
+
         .leaflet-popup-content {
             margin: 15px;
             line-height: 1.5;
         }
+
         .popup-title {
             font-weight: bold;
             font-size: 1.1rem;
@@ -64,19 +68,22 @@
             border-bottom: 1px solid #eee;
             padding-bottom: 5px;
         }
+
         .popup-row {
             display: flex;
             justify-content: space-between;
             margin-bottom: 5px;
         }
+
         .popup-label {
             color: #7f8c8d;
             font-size: 0.9rem;
         }
+
         .popup-value {
             font-weight: 500;
         }
-        
+
         /* Loading overlay */
         #loader {
             position: absolute;
@@ -86,7 +93,7 @@
             background: white;
             padding: 10px 20px;
             border-radius: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             z-index: 1000;
             display: none;
             align-items: center;
@@ -94,7 +101,7 @@
             font-weight: bold;
             color: #3498db;
         }
-        
+
         .spinner {
             width: 16px;
             height: 16px;
@@ -103,9 +110,11 @@
             border-top-color: #3498db;
             animation: spin 1s ease-in-out infinite;
         }
-        
+
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         /* SIREN Section */
@@ -114,6 +123,7 @@
             padding-top: 10px;
             border-top: 1px dashed #ccc;
         }
+
         .siren-btn {
             background-color: #3498db;
             color: white;
@@ -125,13 +135,16 @@
             font-weight: bold;
             transition: background 0.2s;
         }
+
         .siren-btn:hover {
             background-color: #2980b9;
         }
+
         .siren-btn:disabled {
             background-color: #bdc3c7;
             cursor: not-allowed;
         }
+
         .siren-result {
             margin-top: 10px;
             padding: 10px;
@@ -140,34 +153,92 @@
             border-left: 3px solid #2ecc71;
             font-size: 0.9rem;
         }
+
         .siren-error {
             border-left-color: #e74c3c;
             color: #e74c3c;
         }
+
+        /* Legend */
+        .legend {
+            position: absolute;
+            bottom: 30px;
+            right: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            font-size: 0.85rem;
+            color: #2c3e50;
+            pointer-events: none;
+        }
+
+        .legend-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.75rem;
+            color: #7f8c8d;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .legend-color {
+            width: 18px;
+            height: 18px;
+            border-radius: 3px;
+            border: 1px solid #e74c3c;
+            background: rgba(243, 156, 18, 0.2);
+        }
+
+        .legend-color.highlight {
+            border: 3px solid #e74c3c;
+            box-shadow: 0 0 5px rgba(231, 76, 60, 0.5);
+        }
     </style>
 </head>
+
 <body>
 
     <div id="header">
         <h1>Cadastre - Département 02 (Aisne)</h1>
         <div id="stats">Zoom in to load parcels</div>
     </div>
-    
+
     <div id="loader">
         <div class="spinner"></div>
         Loading Data...
+    </div>
+
+    <div class="legend">
+        <div class="legend-title">Légende</div>
+        <div class="legend-item">
+            <div class="legend-color"></div>
+            <span>Parcelle</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color highlight"></div>
+            <span>Parcelle Sélectionnée</span>
+        </div>
     </div>
 
     <div id="map"></div>
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    
+
     <script>
         const API_BASE = 'http://localhost:8000';
-        
-        // Init Map centered on Aisne
-        const map = L.map('map').setView([49.5, 3.5], 10);
+
+        // Init Map centered on Soissons
+        const map = L.map('map').setView([49.38, 3.32], 14);
 
         // OpenStreetMap tiles
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -190,17 +261,33 @@
             fillOpacity: 0.5
         };
 
+        const parcelSelectedStyle = {
+            weight: 4,
+            color: '#e74c3c',
+            fillColor: '#e67e22',
+            fillOpacity: 0.6,
+            dashArray: ''
+        };
+
+        let selectedLayer = null;
+
         // GeoJSON layer
         let geojsonLayer = L.geoJSON(null, {
             style: parcelStyle,
-            onEachFeature: function(feature, layer) {
+            onEachFeature: function (feature, layer) {
                 // Hover effects
                 layer.on({
                     mouseover: (e) => {
-                        e.target.setStyle(parcelHoverStyle);
+                        const layer = e.target;
+                        if (layer !== selectedLayer) {
+                            layer.setStyle(parcelHoverStyle);
+                        }
                     },
                     mouseout: (e) => {
-                        geojsonLayer.resetStyle(e.target);
+                        const layer = e.target;
+                        if (layer !== selectedLayer) {
+                            geojsonLayer.resetStyle(layer);
+                        }
                     },
                     click: onParcelClick
                 });
@@ -209,7 +296,7 @@
 
         const loader = document.getElementById('loader');
         const stats = document.getElementById('stats');
-        
+
         let fetchTimeout = null;
 
         // Fetch parcels when map moves
@@ -218,6 +305,7 @@
             if (map.getZoom() < 16) {
                 stats.innerText = 'Zoom in closer to see parcels (Zoom 16+)';
                 geojsonLayer.clearLayers();
+                selectedLayer = null;
                 return;
             }
 
@@ -229,19 +317,30 @@
         async function fetchParcels() {
             const bounds = map.getBounds();
             const bbox = `${bounds.getWest()},${bounds.getSouth()},${bounds.getEast()},${bounds.getNorth()}`;
-            
+
             loader.style.display = 'flex';
             stats.innerText = 'Loading...';
-            
+
             try {
                 const res = await fetch(`${API_BASE}/parcelles?bbox=${bbox}&limit=1000`);
                 if (!res.ok) throw new Error('API Error');
-                
+
                 const data = await res.json();
-                
+
                 geojsonLayer.clearLayers();
                 geojsonLayer.addData(data);
-                
+
+                // If we had a selected parcel, try to find it again in the new data
+                if (selectedLayer && selectedLayer.feature) {
+                    const idu = selectedLayer.feature.properties.idu;
+                    geojsonLayer.eachLayer(l => {
+                        if (l.feature.properties.idu === idu) {
+                            selectedLayer = l;
+                            selectedLayer.setStyle(parcelSelectedStyle);
+                        }
+                    });
+                }
+
                 stats.innerText = `Viewing ${data.count} parcels`;
             } catch (err) {
                 console.error(err);
@@ -251,10 +350,18 @@
             }
         }
 
-        // Handle parcel click (Popup + SIREN trigger)
+        // Handle parcel click (Highlight + Popup + SIREN trigger)
         function onParcelClick(e) {
-            const props = e.target.feature.properties;
-            
+            const layer = e.target;
+            const props = layer.feature.properties;
+
+            // Highlight logic
+            if (selectedLayer) {
+                geojsonLayer.resetStyle(selectedLayer);
+            }
+            selectedLayer = layer;
+            selectedLayer.setStyle(parcelSelectedStyle);
+
             // Build popup HTML
             let popupContent = `
                 <div class="popup-title">Parcelle ${props.idu}</div>
@@ -281,39 +388,48 @@
                     <div id="siren-result-${props.idu}"></div>
                 </div>
             `;
-            
             L.popup()
                 .setLatLng(e.latlng)
                 .setContent(popupContent)
                 .openOn(map);
+
+            // If popup is closed, reset style? (Optional, let's keep it highlighted for now)
         }
 
+        // Clear selection when popup closes
+        map.on('popupclose', () => {
+            if (selectedLayer) {
+                geojsonLayer.resetStyle(selectedLayer);
+                selectedLayer = null;
+            }
+        });
+
         // Fetch SIREN data
-        window.lookupSiren = async function(idu) {
+        window.lookupSiren = async function (idu) {
             const btn = document.querySelector(`#siren-container-${idu} button`);
             const div = document.getElementById(`siren-result-${idu}`);
-            
+
             btn.disabled = true;
             btn.innerText = 'Recherche...';
-            
+
             try {
                 // 1. Get SIREN from IGN API
                 const resIGN = await fetch(`${API_BASE}/parcelles/${idu}/siren`);
                 const dataIGN = await resIGN.json();
-                
+
                 if (!dataIGN.siren) {
                     div.innerHTML = `<div class="siren-result siren-error">Propriétaire non trouvé ou personne physique (donnée privée).</div>`;
                     return;
                 }
-                
+
                 let html = `<div class="siren-result">
                     <strong>Personne Morale trouvée !</strong><br>
                     SIREN: ${dataIGN.siren}
                 </div>`;
-                
+
                 div.innerHTML = html;
                 btn.innerText = 'Recherche INSEE détaillée...';
-                
+
                 // 2. Bonus: Get detailed company info from INSEE
                 try {
                     const resINSEE = await fetch(`${API_BASE}/siren/${dataIGN.siren}`);
@@ -327,12 +443,12 @@
                         </div>`;
                         div.innerHTML = html;
                     }
-                } catch(e) {
+                } catch (e) {
                     console.log("INSEE lookup failed or no key", e);
                 }
-                
+
                 btn.style.display = 'none'; // hide button on success
-                
+
             } catch (err) {
                 div.innerHTML = `<div class="siren-result siren-error">Erreur de connexion à l'API.</div>`;
             } finally {
@@ -347,4 +463,5 @@
         setTimeout(() => map.fire('moveend'), 1000);
     </script>
 </body>
+
 </html>
