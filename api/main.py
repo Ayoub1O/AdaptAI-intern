@@ -97,7 +97,7 @@ def get_parcelles(
     }
 
 
-# ── Single parcelle ────────────────────────────────────────────────────────────
+# ── Single parcel ────────────────────────────────────────────────────────────
 
 @app.get("/parcelles/{idu}")
 def get_parcelle(idu: str):
@@ -129,62 +129,40 @@ def get_parcelle(idu: str):
     }
 
 
-# ── SIREN lookup via IGN API Carto ─────────────────────────────────────────────
+# ── SIREN lookup via Koumoul MAJIC API ──────────────────────────────────────────
 
 @app.get("/parcelles/{idu}/siren")
 async def get_siren(idu: str):
     """
-    Look up the owner SIREN for a parcelle using the IGN API Carto (open MAJIC PM).
+    Look up the owner SIREN for a parcelle using the Koumoul MAJIC API.
     Only works for legal-entity (personne morale) owners.
     """
-    # The IDU is 14 chars: 2 dep + 3 com + 2 feuille prefix + ... 
-    # IGN Cadastre API expects: code_dep + code_com + section + numero
-    # We query the parcelle first to get those fields
-    conn = get_conn()
-    try:
-        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-            cur.execute(
-                "SELECT code_dep, code_com, section, numero FROM parcelles WHERE idu = %s",
-                (idu,),
-            )
-            row = cur.fetchone()
-    finally:
-        conn.close()
-
-    if not row:
-        raise HTTPException(status_code=404, detail="Parcelle not found")
-
-    # IGN API Carto – propriétaires (open MAJIC PM)
-    url = (
-        "https://apicarto.ign.fr/api/cadastre/proprietaire"
-        f"?code_dep={row['code_dep']}"
-        f"&code_com={row['code_com']}"
-        f"&section={row['section']}"
-        f"&numero={row['numero']}"
-    )
+    # Koumoul MAJIC API - Parcelles des personnes morales
+    url = f"https://koumoul.com/data-fair/api/v1/datasets/parcelles-des-personnes-morales/lines?q={idu}"
 
     async with httpx.AsyncClient(timeout=10) as client:
         resp = await client.get(url)
 
     if resp.status_code != 200:
-        return {"siren": None, "message": "IGN API returned no data"}
+        return {"siren": None, "message": f"Koumoul API error: {resp.status_code}"}
 
     data = resp.json()
-    features = data.get("features", [])
-    if not features:
+    results = data.get("results", [])
+    if not results:
         return {"siren": None, "message": "No owner data found (may be private individual)"}
 
     # Extract SIREN from the first result
-    props = features[0].get("properties", {})
-    siren = props.get("siren")
+    owner = results[0]
+    siren = owner.get("numero_siren")
+    
     return {
         "siren": siren,
-        "denominataire": props.get("denominataire"),
-        "proprietaire": props,
+        "denominataire": owner.get("denomination"),
+        "proprietaire": owner,
     }
 
 
-# ── Bonus: INSEE Sirene API ────────────────────────────────────────────────────
+# ──INSEE Sirene API ────────────────────────────────────────────────────
 
 @app.get("/siren/{siren}")
 async def get_company(siren: str):
