@@ -30,6 +30,10 @@ cd AdaptAI-intern
 ### 1. Database Setup
 Ensure you have **PostgreSQL** with the **PostGIS** extension installed.
 
+**Download Data:**
+Download the Parcellaire Express (PCI) SHP files for Aisne (02) from the official IGN portal:
+[PARCELLAIRE-EXPRESS_1-1__SHP_LAMB93_D002_2025-12-01.7z](https://data.geopf.fr/telechargement/download/PARCELLAIRE-EXPRESS/PARCELLAIRE-EXPRESS_1-1__SHP_LAMB93_D002_2025-12-01/PARCELLAIRE-EXPRESS_1-1__SHP_LAMB93_D002_2025-12-01.7z)
+
 1. Create the database:
    ```sql
    CREATE DATABASE cadastre;
