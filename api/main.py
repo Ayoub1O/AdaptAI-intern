@@ -162,18 +162,20 @@ async def get_siren(idu: str):
     }
 
 
-# ──INSEE Sirene API ────────────────────────────────────────────────────
+# ── INSEE Sirene API ────────────────────────────────────────────────────
 
 @app.get("/siren/{siren}")
 async def get_company(siren: str):
-    """Fetch company info from INSEE Sirene API (requires API key in .env)."""
-    api_key = os.getenv("INSEE_API_KEY", "")
+    api_key = os.getenv("INSEE_API_KEY")
 
-    # Use the public Sirene open data endpoint (no key needed for basic lookup)
-    url = f"https://api.insee.fr/entreprises/sirene/V3.11/siren/{siren}"
-    headers = {"Accept": "application/json"}
-    if api_key:
-        headers["Authorization"] = f"Bearer {api_key}"
+    if not api_key:
+        raise HTTPException(status_code=500, detail="INSEE_API_KEY missing from .env")
+
+    url = f"https://api.insee.fr/api-sirene/3.11/siren/{siren}"
+    headers = {
+        "Accept": "application/json",
+        "X-INSEE-Api-Key-Integration": api_key.strip(),
+    }
 
     async with httpx.AsyncClient(timeout=10) as client:
         resp = await client.get(url, headers=headers)
@@ -181,7 +183,7 @@ async def get_company(siren: str):
     if resp.status_code == 404:
         raise HTTPException(status_code=404, detail="SIREN not found")
     if resp.status_code == 401:
-        raise HTTPException(status_code=401, detail="INSEE API key required – set INSEE_API_KEY in .env")
+        raise HTTPException(status_code=401, detail="Invalid INSEE API key")
     if resp.status_code != 200:
         raise HTTPException(status_code=502, detail=f"INSEE API error: {resp.status_code}")
 
