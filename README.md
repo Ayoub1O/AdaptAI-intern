@@ -9,6 +9,14 @@ This project is a full-stack application designed to visualize cadastral parcell
 - **Owner Lookup**: Real-time integration with **Koumoul API (MAJIC)** for SIREN retrieval.
 - **Company Insights**: Enrichment with **INSEE Sirene API** (OAuth2/Integration Key).
 
+## 📸 App Screenshots
+
+![Carte Interactive](assets/screenshots/SS1.jpeg)
+*The interactive map showing cadastral parcels and the legend.*
+
+![Détails Parcelle et SIREN](assets/screenshots/SS2.jpeg)
+*View of a selected parcel with real-time SIREN and INSEE data.*
+
 ---
 
 ## 🛠️ Setup Instructions
